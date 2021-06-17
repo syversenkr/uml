@@ -1,6 +1,17 @@
 @startuml
 title Consumption dependencies between CPPEs
 
+note as N1
+	elementTransitions -> consumptionTransitions
+	ElementTransition -> ConsumptionTransition
+	TransitionPolicy -> ConsumptionTransitionMethod
+	transitions -> elementTransitions
+	elementTransitionRequirements -> (no change)
+	CustomerPurchasePackageElementTransitionRequirement ->
+end note
+
+
+
 package "Sales offer package model" {
 	class SalesOfferPackage
 	class SalesOfferPackageElement
@@ -13,6 +24,7 @@ package "Sales offer package model" {
 	class GenericParameterAssignment
 
 	SalesOfferPackage "1" *-- "1..n" SalesOfferPackageElement: "salesOfferPackageElements"
+	ConsumptionDependency "1" *-- "1..n" ConsumptionDependency: "consumptionDependencies"
 	SalesOfferPackageElement "1" *-- "1" FareProduct: "salesOfferPackageElements"
 	FareProduct  "1" *-- "1..n" AccessRightInProduct : "accessRightInProduct"
 	AccessRightInProduct  "1" *-- "1..n" ValidableElement : "validableElement (number defined by MaximumAccess)"
@@ -22,6 +34,8 @@ package "Sales offer package model" {
 	ValidableElement "1" *-- "0..n" GenericParameterAssignment: "validityParameterAssignments"
 	FareStructureElement "1" *-- "0..n" GenericParameterAssignment: "validityParameterAssignments"
 }
+
+
 
 package "Customer purchase package model" {
 	class CustomerPurchasePackage
@@ -63,32 +77,32 @@ package "Consumption dependency model" {
 
 
 
-	note top of ConsumptionDependency
+	note top of ElementConsumptionPolicy
 		Defines the state the corresponding
 		CustomerPurchasePackageElementAccess
 		must be in in order for dependency to be satisfied
 	end note
-	class ConsumptionDependency #lightblue
+	class ElementConsumptionPolicy #lightblue
 
-	note bottom of CustomerPurchasePackageElementConsumptionDependency
+	note bottom of CustomerPurchasePackageElementElementConsumptionPolicy
 		Specialisation referring to an CPPE.
 		Used in the CustomerPurchasePackage hierarchy
 	end note
-	class CustomerPurchasePackageElementConsumptionDependency #lightblue
+	class CustomerPurchasePackageElementElementConsumptionPolicy #lightblue
 
 
-	note bottom of AccessRightInProductConsumptionDependency
+	note bottom of AccessRightInProductElementConsumptionPolicy
 		Specialisation referring to an AccessRightInProduct with
 		a given access number (used if MaximumAccess > 1)
 	end note
-	class AccessRightInProductConsumptionDependency #lightblue {
+	class AccessRightInProductElementConsumptionPolicy #lightblue {
 		-int accessNumber
 	}
-	ConsumptionDependency <|-- CustomerPurchasePackageElementConsumptionDependency
-	ConsumptionDependency <|-- AccessRightInProductConsumptionDependency
+	ElementConsumptionPolicy <|-- CustomerPurchasePackageElementElementConsumptionPolicy
+	ElementConsumptionPolicy <|-- AccessRightInProductElementConsumptionPolicy
 
-	AccessRightInProductConsumptionDependency --> AccessRightInProduct
-	CustomerPurchasePackageElementConsumptionDependency --> CustomerPurchasePackageElement
+	AccessRightInProductElementConsumptionPolicy --> AccessRightInProduct
+	CustomerPurchasePackageElementElementConsumptionPolicy --> CustomerPurchasePackageElement
 
 
 
@@ -137,8 +151,8 @@ package "Consumption dependency model" {
 
 
 
-	ConsumptionDependency "1" --> "1" CustomerPurchasePackageElement: "cppe in question"
-	ConsumptionDependency "1" --> "1" MarkedAs: "markedAs status"
+	ElementConsumptionPolicy "1" --> "1" CustomerPurchasePackageElement: "cppe in question"
+	ElementConsumptionPolicy "1" --> "1" MarkedAs: "markedAs status"
 	CustomerPurchasePackageElementConsumptionUtilisation  .. CustomerPurchasePackageElementAccess: "element access in state"
 
 	note top of MaximumNumberOfAccesses
@@ -159,12 +173,12 @@ package "Consumption dependency model" {
 	MaximumNumberOfAccesses *--  MaximumNumberOfAccessesType: "type"
 
 
-	note top of ConsumptionTransitionPolicy
+	note top of ConsumptionTriggerType
 		Shall the coresponding CPPE referred to in ConsumptionUtilisation
 		be transitioned automatically (according to CPPE parameters)
 		or manually at the convenience of the traveller/external system
 	end note
-	enum ConsumptionTransitionPolicy #lightblue{
+	enum ConsumptionTriggerType #lightblue{
 		-manual
 		-automatic
 	}
@@ -175,13 +189,13 @@ package "Consumption dependency model" {
 
 
 
-	ConsumptionUtilisationDependency "1" *-- "0..n" ConsumptionDependency: "consumptionDependencies"
+	ConsumptionUtilisationDependency "1" *-- "0..n" ElementConsumptionPolicy: "consumptionDependencies"
 	ConsumptionUtilisationDependency *--  MaximumNumberOfAccesses: "maximumNumberOfAccesses"
 	ConsumptionUtilisationDependency "1" *-- "0..n" ConsumptionUtilisation: "consumptionUtilisations"
 	ConsumptionUtilisationDependency "1" *-- "0..n" CrossConstraint: "crossConstraints"
 	ConsumptionUtilisationDependency *--  LogicalOperatorEnumeration: "consumptionDependenciesGrouping"
 	ConsumptionUtilisationDependency *--  LogicalOperatorEnumeration: "consumptionUtilisationGrouping"
-	ConsumptionUtilisationDependency *--  ConsumptionTransitionPolicy: "transitionPolicy"
+	ConsumptionUtilisationDependency *--  ConsumptionTriggerType: "transitionPolicy"
 
 
 	class EntitlementConstraintStructure {
